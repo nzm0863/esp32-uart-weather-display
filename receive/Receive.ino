@@ -1,6 +1,11 @@
 #include <Adafruit_NeoPixel.h>
+#include <WiFi.h>
+#include <HTTPClient.h>
 #define RXD2 16
 #define TXD2 17
+
+#define WIFI_SSID ""
+#define WIFI_PASSWORD ""
 
 #define LED_PIN 5
 #define LED_COUNT 8
