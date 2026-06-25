@@ -32,7 +32,7 @@ void setup() {
   Serial.println(WiFi.RSSI());
 
   strip.begin();
-  strip.setBrightness(5);
+  strip.setBrightness(10);
   strip.show();
 }
 
@@ -53,7 +53,7 @@ void loop() {
   Serial.println(LEDCount);
   strip.clear();
   for (int i = 0; i < LEDCount; i++) {
-    strip.setPixelColor(i, 255, 255, 255);
+    strip.setPixelColor(i, 255, 0, 0);
   }
   WiFiClientSecure client;
   client.setInsecure();

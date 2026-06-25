@@ -30,7 +30,7 @@ void loop() {
   // }
 
   LEDCount = constrain(
-    map(sensorValue, 3000, 4200, 1, 8),
+    map(sensorValue, 2000, 4000, 1, 8),
     1,
     8);
 

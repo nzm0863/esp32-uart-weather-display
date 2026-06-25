@@ -6,6 +6,9 @@
 
 光センサーが一定値を超えた場合は「ON」、下回った場合は「OFF」をUART経由で送信し、受信側でLEDの点灯・消灯を行います。
 
+## 解説動画
+https://youtube.com/shorts/8J1rCqYr5aY?feature=share
+
 ## システム構成
 
 光センサー → ESP32(送信側) → UART → ESP32(受信側) → NeoPixel
