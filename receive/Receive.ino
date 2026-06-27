@@ -1,16 +1,18 @@
-#include <Adafruit_NeoPixel.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <WiFiClientSecure.h>
 #include "../wifi_config.h"
 
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+
 #define RXD2 16
 #define TXD2 17
 
-#define LED_PIN 5
-#define LED_COUNT 8
-
-Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 void setup() {
   Serial.begin(115200);
@@ -31,53 +33,46 @@ void setup() {
   Serial.print("RSSI:");
   Serial.println(WiFi.RSSI());
 
-  strip.begin();
-  strip.setBrightness(10);
-  strip.show();
+  // SDA=21 SCL=22（ESP32の標準）
+  Wire.begin(21, 22);
+
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println("OLED initialization failed");
+    while (true)
+      ;
+  }
+
+  display.clearDisplay();
+  display.setTextSize(2);  // 文字サイズ
+  display.setTextColor(SSD1306_WHITE);
+
+  display.setCursor(0, 0);
+  display.display();
 }
+
+String forecast[3];
+int receiveIndex = 0;
+int showIndex = 0;
 
 void loop() {
   if (Serial2.available()) {
-    Serial.print("ok");
-  } else {
-    Serial.print("ng");
+    forecast[receiveIndex] = Serial2.readStringUntil('\n');
+    forecast[receiveIndex].trim();
+    Serial.print("受信:");
+    Serial.println(forecast[showIndex]);
+    receiveIndex++;
+    if (receiveIndex >= 3) {
+      receiveIndex = 0;
+    }
   }
-
-  String msg = "";
-  while (Serial2.available()) {
-    msg = Serial2.readStringUntil('\n');
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.setTextSize(2);
+  display.println(forecast[showIndex]);
+  display.display();
+  showIndex++;
+  if (showIndex >= 3) {
+    showIndex = 0;
   }
-  msg.trim();
-  int LEDCount = msg.toInt();
-  Serial.print("受信:");
-  Serial.println(LEDCount);
-  strip.clear();
-  for (int i = 0; i < LEDCount; i++) {
-    strip.setPixelColor(i, 255, 0, 0);
-  }
-  WiFiClientSecure client;
-  client.setInsecure();
-
-  HTTPClient http;
-  http.begin(client, String(SUPABASE_URL) + "sensor_value");
-  http.addHeader("apikey", SUPABASE_KEY);
-  http.addHeader("Authorization", "Bearer " + String(SUPABASE_KEY));
-  http.addHeader("Content-Type", "application/json");
-  String json =
-    "{\"value\":" + String(LEDCount) + "}";
-
-  int httpCode = http.POST(json);
-
-  Serial.print("HTTP:");
-  Serial.println(httpCode);
-  // Serial.println(String(SUPABASE_URL) + "sensor_value");
-
-  String response = http.getString();
-  Serial.println(response);
-
-  http.end();
-
-  strip.show();
-
-  delay(100);
+  delay(1000);
 }

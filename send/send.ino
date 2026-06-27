@@ -1,42 +1,90 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+#include "../wifi_config.h"
+
 #define RXD2 16
 #define TXD2 17
-#define SENSOR_PIN 32
+
+void getWeather() {
+  HTTPClient http;
+
+  // 浜松(西部)の天気
+  http.begin("https://weather.tsukumijima.net/api/forecast?city=220040");
+
+  int httpCode = http.GET();
+
+
+  if (httpCode > 0) {
+    String payload = http.getString();
+
+    JsonDocument doc;
+
+    deserializeJson(doc, payload);
+
+    for (int i = 0; i < 3; i++) {
+      const char* date = doc["forecasts"][i]["date"];
+      String telop = weatherToEnglish(doc["forecasts"][i]["telop"]);
+      const char* maxTemp =doc["forecasts"][0]["temperature"]["max"]["celsius"];
+
+      Serial.print(date);
+      Serial.print(" : ");
+      Serial.print(telop);
+      Serial.print(",,,");
+      Serial.print("maxTemp");
+      Serial.print(":");
+      Serial.println(maxTemp);
+      Serial2.print(date);
+      Serial2.print(" : ");
+      Serial2.print(telop);
+      Serial2.print(",,,");
+      Serial2.print("maxTemp");
+      Serial2.print(":");
+      Serial2.println(maxTemp);
+      delay(50);
+    }
+  } else {
+    Serial.println("通信失敗");
+  }
+
+  http.end();
+}
 
 void setup() {
   Serial.begin(115200);
   Serial2.begin(115200, SERIAL_8N1, RXD2, TXD2);
+
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("\nWiFi接続");
+  getWeather();
 }
 
-bool lastState = false;
-int LEDCount = 0;
+String weatherToEnglish(const char* weather) {
+  String w = weather;
+  if (strcmp(weather, "晴れ") == 0) return "Sunny";
+  if (strcmp(weather, "曇り") == 0) return "Cloudy";
+  if (strcmp(weather, "雨") == 0) return "Rain";
+  if (strcmp(weather, "雪") == 0) return "Snow";
+
+
+  if (w == "曇のち一時雨")
+    return "Cloudy -> Rain";
+
+  return weather;  // 該当しなければそのまま返す
+}
+
+unsigned long lastUpdate = 0;
+const unsigned long interval = 30UL * 60 * 1000;  // 30分
+
 void loop() {
-  int sensorValue = analogRead(SENSOR_PIN);
-  // if (sensorValue < 3000) {
-  //   LEDCount = 1;
-  // } else if (sensorValue < 3200) {
-  //   LEDCount = 2;
-  // } else if (sensorValue < 3400) {
-  //   LEDCount = 3;
-  // } else if (sensorValue < 3600) {
-  //   LEDCount = 4;
-  // } else if (sensorValue < 3800) {
-  //   LEDCount = 5;
-  // } else if (sensorValue < 4000) {
-  //   LEDCount = 6;
-  // } else if (sensorValue < 4200) {
-  //   LEDCount = 7;
-  // } else {
-  //   LEDCount = 8;
-  // }
-
-  LEDCount = constrain(
-    map(sensorValue, 2000, 4000, 1, 8),
-    1,
-    8);
-
-  Serial2.println(LEDCount);
-  Serial.println(LEDCount);
-  Serial.println(sensorValue);
-
-  delay(500);
+  if (millis() - lastUpdate >= interval) {
+    getWeather();
+    lastUpdate = millis();
+  }
 }

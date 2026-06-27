@@ -1,54 +1,41 @@
-# ESP32 UART NeoPixel Control
+# ESP32 UART Weather Display
 
-## 概要
+ESP32を2台使用し、天気予報APIから取得した天気情報をUART通信で送信し、OLEDディスプレイに表示するIoTプロジェクトです。
 
-2台のESP32をUART通信で接続し、送信側の光センサーの値に応じて受信側のNeoPixel LEDを制御するシステムを作成しました。
+## Features
 
-光センサーが一定値を超えた場合は「ON」、下回った場合は「OFF」をUART経由で送信し、受信側でLEDの点灯・消灯を行います。
+- 天気予報APIから3日分の天気を取得
+- JSONデータをArduinoJsonで解析
+- 天気を英語へ変換してUART送信
+- ESP32間でUART通信
+- OLED(SSD1306)へ表示
 
-## 解説動画
-https://youtube.com/shorts/8J1rCqYr5aY?feature=share
+## Hardware
 
-## システム構成
+- ESP32 ×2
+- SSD1306 OLED Display (128×64)
 
-光センサー → ESP32(送信側) → UART → ESP32(受信側) → NeoPixel
+## Libraries
 
-## 使用技術
+- ArduinoJson
+- Adafruit GFX Library
+- Adafruit SSD1306
+- WiFi
+- HTTPClient
 
-* ESP32 DevKitC-32E
-* Arduino IDE
-* UART通信 (Serial2)
-* Adafruit NeoPixel
-* 光センサー
-* C++
+## Project Structure
 
-## 動作内容
+Sender ESP32
+- Wi-Fi接続
+- Weather API取得
+- JSON解析
+- UART送信
 
-送信側
+Receiver ESP32
+- UART受信
+- OLED表示
 
-* 光センサーの値を取得
-* 閾値を超えた場合は「ON」を送信
-* 閾値を下回った場合は「OFF」を送信
+## API
 
-受信側
+https://weather.tsukumijima.net/
 
-* UARTでデータを受信
-* 「ON」でNeoPixelを点灯
-* 「OFF」でNeoPixelを消灯
-
-## 学んだこと
-
-* UART通信の基本的な仕組み
-* TX/RX配線の接続方法
-* UART受信バッファと available() の役割
-* read() によるデータ取得
-* 文字列比較時の改行コード(\r, \n)の扱い
-* センサー値を利用したデバイス制御
-
-## 今後の改善
-
-* 状態変化時のみ送信して通信量を削減
-* RGBカラー制御への対応
-* センサー値そのものを送信
-* JSON形式によるデータ通信
-* OLED表示機能の追加
