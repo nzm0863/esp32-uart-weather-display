@@ -1,6 +1,7 @@
 # ESP32 UART Weather Display
 
 ESP32を2台使用し、天気予報APIから取得した天気情報をUART通信で送信し、OLEDディスプレイに表示するIoTプロジェクトです。
+![display](./img/display.jpg)
 
 ## Features
 
