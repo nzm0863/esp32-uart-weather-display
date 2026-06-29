@@ -25,21 +25,16 @@ void getWeather() {
     for (int i = 0; i < 3; i++) {
       const char* date = doc["forecasts"][i]["date"];
       String telop = weatherToEnglish(doc["forecasts"][i]["telop"]);
-      const char* maxTemp =doc["forecasts"][0]["temperature"]["max"]["celsius"];
+      const char* maxTemp = doc["forecasts"][0]["temperature"]["max"]["celsius"];
 
       Serial.print(date);
       Serial.print(" : ");
       Serial.print(telop);
-      Serial.print(",,,");
-      Serial.print("maxTemp");
-      Serial.print(":");
       Serial.println(maxTemp);
       Serial2.print(date);
       Serial2.print(" : ");
       Serial2.print(telop);
-      Serial2.print(",,,");
-      Serial2.print("maxTemp");
-      Serial2.print(":");
+      Serial2.print(",");
       Serial2.println(maxTemp);
       delay(50);
     }
@@ -67,16 +62,21 @@ void setup() {
 
 String weatherToEnglish(const char* weather) {
   String w = weather;
-  if (strcmp(weather, "晴れ") == 0) return "Sunny";
-  if (strcmp(weather, "曇り") == 0) return "Cloudy";
-  if (strcmp(weather, "雨") == 0) return "Rain";
-  if (strcmp(weather, "雪") == 0) return "Snow";
+  // if (strcmp(weather, "晴れ") == 0) return "Sunny";
+  // if (strcmp(weather, "曇り") == 0) return "Cloudy";
+  // if (strcmp(weather, "雨") == 0) return "Rain";
+  // if (strcmp(weather, "雪") == 0) return "Snow";
 
 
-  if (w == "曇のち一時雨")
-    return "Cloudy -> Rain";
+  if (w.indexOf("雪") >= 0) return "Snow";
+  if (w.indexOf("雨") >= 0) {
+    if (w.indexOf("雷") >= 0) return "Thunder";
+    return "Rain";
+  };
+  if (w.indexOf("曇") >= 0) return "Cloudy";
+  if (w.indexOf("晴") >= 0) return "Sunny";
 
-  return weather;  // 該当しなければそのまま返す
+  return "Unknown";
 }
 
 unsigned long lastUpdate = 0;
